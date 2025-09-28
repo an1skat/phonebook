@@ -4,20 +4,44 @@ class ContactForm extends Component {
 	state = {
 		name: '',
 		number: '',
+		error: '', // Для повідомлень про помилку
 	};
 	
 	handleChange = (e) => {
-		this.setState({ [e.target.name]: e.target.value });
+		this.setState({ [e.target.name]: e.target.value, error: '' });
+	};
+	
+	validateName = (name) => {
+		const nameRegex = /^[a-zA-Zа-яА-Я]+([ '-][a-zA-Zа-яА-Я]+)*$/;
+		return nameRegex.test(name);
+	};
+	
+	validateNumber = (number) => {
+		const numberRegex = /^\+?\d{1,4}?[-. ()]?\(?\d{1,3}\)?[-. ()]?\d{1,4}[-. ()]?\d{1,4}([- .()]?\d{1,9})?$/;
+		return numberRegex.test(number);
 	};
 	
 	handleSubmit = (e) => {
 		e.preventDefault();
 		const { name, number } = this.state;
+		
+		if (!this.validateName(name)) {
+			this.setState({ error: 'Invalid name. Only letters, spaces, apostrophes and dashes allowed.' });
+			return;
+		}
+		
+		if (!this.validateNumber(number)) {
+			this.setState({ error: 'Invalid phone number format.' });
+			return;
+		}
+		
 		this.props.onAddContact(name, number);
-		this.setState({ name: '', number: '' });
+		this.setState({ name: '', number: '', error: '' });
 	};
 	
 	render() {
+		const { name, number, error } = this.state;
+		
 		return (
 			<form className="form" onSubmit={this.handleSubmit}>
 				<label>
@@ -25,10 +49,8 @@ class ContactForm extends Component {
 					<input
 						type="text"
 						name="name"
-						value={this.state.name}
+						value={name}
 						onChange={this.handleChange}
-						pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-						title="Name may contain only letters, apostrophe, dash and spaces."
 						required
 					/>
 				</label>
@@ -37,13 +59,12 @@ class ContactForm extends Component {
 					<input
 						type="tel"
 						name="number"
-						value={this.state.number}
+						value={number}
 						onChange={this.handleChange}
-						pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-						title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
 						required
 					/>
 				</label>
+				{error && <p className="error">{error}</p>}
 				<button type="submit" className="btn">Add contact</button>
 			</form>
 		);
